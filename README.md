@@ -10,6 +10,12 @@ Properties (inspired by [ReactiveSwift](https://github.com/ReactiveCocoa/Reactiv
 - A `Publisher` that returns all future values, excluding the current one
 - Operators to transform to other Properties (map, flatMap, boolean and/or/negate,...)
 
+## Why?
+
+There are at least two scenarios where Properties shine:
+- Slicing global state (e.g. `AppState`) into sub-states (e.g. `AuthState`) for easier testing. Maybe a ViewModel only needs the `AuthState` to operate - if it gets passed the `AppState`, then the whole state has to be mocked for every test.
+- "Storing" dynamic data in a `struct` (like the ViewModel in the example below).
+
 ## Usage
 
 Here's a not-so-academical example of how Properties can be used:
