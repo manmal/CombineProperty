@@ -8,6 +8,7 @@ Properties (inspired by [ReactiveSwift](https://github.com/ReactiveCocoa/Reactiv
 - The current value
 - A `Publisher` that returns all future values, including the current one
 - A `Publisher` that returns all future values, excluding the current one
+- Operators to transform to other Properties (map, flatMap, boolean and/or/negate,...)
 
 ## Usage
 
