@@ -1,6 +1,13 @@
 # CombineProperty
 
-`Combine.CurrentValueSubject` is great, but it loses its `value` property after applying just one operator. Also, in many cases, immutability would be desirable. This gap is filled by [Reactive-Swift-style](https://github.com/ReactiveCocoa/ReactiveSwift/blob/master/Sources/Property.swift) Properties.
+When using Combine, a challenge sometimes is: How can a Publisher's current value be retrieved?
+
+`Combine.CurrentValueSubject` would be an option since it stores a current value, but this is a dead end - you cannot `map()` a subject and retrieve the mapped current value. It's also sometimes not ideal to leave the current value mutable.
+
+Properties (inspired by [ReactiveSwift](https://github.com/ReactiveCocoa/ReactiveSwift/blob/master/Sources/Property.swift)) take either a `CurrentValueSubject` or an arbitrary `Publisher` plus initial value, and provide:
+- The current value
+- A `Publisher` that returns all future values, including the current one
+- A `Publisher` that returns all future values, excluding the current one
 
 ## Usage
 
