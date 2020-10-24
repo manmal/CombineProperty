@@ -1,11 +1,13 @@
 import Combine
 
 public struct Property<Output> {
+
     public var value: Output { _value() }
     public let valuesWithCurrent: AnyPublisher<Output, Never>
-    public let valuesWithoutCurrent: PassthroughSubject<Output, Never>
+    public let valuesWithoutCurrent: AnyPublisher<Output, Never>
 
     private let _value: () -> Output
+    private let _valuesWithoutCurrent: PassthroughSubject<Output, Never>
     private let cancellable: AnyCancellable
 
     /// Initializes a `Property` with the initial value, and a publisher of subsequent
@@ -33,13 +35,15 @@ public struct Property<Output> {
         guard subject.value != nil else {
             fatalError("The publisher promised to send at least one value. Received none.")
         }
-        _value = { subject.value! }
-        valuesWithCurrent = ValuesWithCurrent(currentValue: _value, valuesWithoutCurrent: valuesWithoutCurrent).eraseToAnyPublisher()
-        self.valuesWithoutCurrent = valuesWithoutCurrent
+        self._value = { subject.value! }
+        self.valuesWithCurrent = DeferredJust(value: _value).append(valuesWithoutCurrent).eraseToAnyPublisher()
+        self._valuesWithoutCurrent = valuesWithoutCurrent
+        self.valuesWithoutCurrent = _valuesWithoutCurrent.retainValue(cancellable).eraseToAnyPublisher()
     }
 }
 
 internal extension Property {
+
     func lift<Q>(_ transform: @escaping (AnyPublisher<Output, Never>) -> Q) -> Property<Q.Output>
     where Q: Publisher, Q.Failure == Never {
         Property<Q.Output>(unsafePublisher: transform(valuesWithCurrent))
@@ -54,44 +58,8 @@ internal extension Property {
     }
 }
 
-private struct ValuesWithCurrent<Output>: Publisher {
-    typealias Failure = Never
-
-    let currentValue: () -> Output
-    let valuesWithoutCurrent: PassthroughSubject<Output, Never>
-
-    func receive<S: Subscriber>(subscriber: S) where S.Input == Output, S.Failure == Never {
-        subscriber.receive(
-            subscription: Sub(
-                subscriber,
-                currentValue: currentValue,
-                valuesWithoutCurrent: valuesWithoutCurrent
-            )
-        )
-    }
-
-    class Sub<Target: Subscriber>: Combine.Subscription where Target.Input == Output, Target.Failure == Never {
-        private var target: Target?
-        private var cancellable: AnyCancellable?
-
-        init(_ target: Target, currentValue: @escaping () -> Output, valuesWithoutCurrent: PassthroughSubject<Output, Never>) {
-            self.target = target
-            _ = target.receive(currentValue())
-            cancellable = valuesWithoutCurrent.sink { value in
-                _ = target.receive(value)
-            }
-        }
-
-        func request(_ demand: Subscribers.Demand) {}
-
-        func cancel() {
-            target = nil
-            cancellable = nil
-        }
-    }
-}
-
 public extension Property {
+
     func map<T>(_ transform: @escaping (Output) -> T) -> Property<T> {
         lift { $0.map(transform) }
     }
@@ -110,6 +78,7 @@ public extension Property {
 }
 
 public extension Property where Output == Bool {
+
     func negate() -> Property<Bool> {
         lift { $0.map { !$0 } }
     }
@@ -120,5 +89,52 @@ public extension Property where Output == Bool {
 
     func or(_ other: Property<Bool>) -> Property<Bool> {
         combineLatest(other).map { $0 || $1 }
+    }
+}
+
+internal extension Publisher {
+
+    func retainValue<Retained>(_ value: Retained) -> Publishers.Map<Self, Output> {
+        map {
+            withExtendedLifetime(value, {})
+            return $0
+        }
+    }
+}
+
+public struct DeferredJust<Output>: Publisher {
+
+    public typealias Failure = Never
+
+    let value: () -> Output
+
+    public func receive<S: Subscriber>(subscriber: S) where S.Input == Output, S.Failure == Never {
+        subscriber.receive(
+            subscription: Sub(subscriber, value: value)
+        )
+    }
+
+    private class Sub<Downstream: Subscriber>: Subscription where Downstream.Input == Output, Downstream.Failure == Never {
+
+        private var downstream: Downstream?
+        private let value: () -> Output
+
+        init(_ downstream: Downstream, value: @escaping () -> Output) {
+            self.downstream = downstream
+            self.value = value
+        }
+
+        func request(_ demand: Subscribers.Demand) {
+            guard demand > 0, let downstream = downstream else {
+                cancel()
+                return
+            }
+            _ = downstream.receive(value())
+            downstream.receive(completion: .finished)
+        }
+
+        func cancel() {
+            downstream = nil
+        }
     }
 }
