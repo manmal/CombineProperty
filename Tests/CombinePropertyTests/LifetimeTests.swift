@@ -36,10 +36,12 @@ final class LifetimeTests: XCTestCase {
 
         _ = {
             let property = Property(initial: 0, then: passthroughSubject)
-            cancellable = property.allValues.sink { _ in
+            cancellable = property.subsequentValues.sink { _ in
                 isValueReceived = true
             }
         }()
+
+        XCTAssertFalse(isValueReceived)
 
         passthroughSubject.send(1)
 
@@ -65,7 +67,7 @@ final class LifetimeTests: XCTestCase {
         })
     }
 
-    func testCurrentValueSubject_IsNotRetained_AfterCancellationOf_AllValuesSubscription() {
+    func testCurrentValueSubject_IsReleased_AfterCancellationOf_AllValuesSubscription() {
 
         weak var weakSubject: CurrentValueSubject<Int, Never>? = nil
         var cancellable: AnyCancellable?
@@ -102,7 +104,7 @@ final class LifetimeTests: XCTestCase {
         })
     }
 
-    func testCurrentValueSubject_IsNotRetained_AfterCancellationOf_SubsequentValuesSubscription() {
+    func testCurrentValueSubject_IsReleased_AfterCancellationOf_SubsequentValuesSubscription() {
 
         weak var weakSubject: CurrentValueSubject<Int, Never>? = nil
         var cancellable: AnyCancellable?
