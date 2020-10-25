@@ -28,7 +28,27 @@ import XCTest
 
 final class LifetimeTests: XCTestCase {
 
-    func testCurrentValueSubjectIsRetainedByAllValuesSubscription() {
+    func testAllValuesPublisher_IsNotCancelled_ByPropertyRelease() {
+
+        let passthroughSubject = PassthroughSubject<Int, Never>()
+        var cancellable: AnyCancellable?
+        var isValueReceived = false
+
+        _ = {
+            let property = Property(initial: 0, then: passthroughSubject)
+            cancellable = property.allValues.sink { _ in
+                isValueReceived = true
+            }
+        }()
+
+        passthroughSubject.send(1)
+
+        withExtendedLifetime(cancellable, {
+            XCTAssertTrue(isValueReceived)
+        })
+    }
+
+    func testCurrentValueSubject_IsRetained_ByAllValuesSubscription() {
 
         weak var weakSubject: CurrentValueSubject<Int, Never>? = nil
         var cancellable: AnyCancellable?

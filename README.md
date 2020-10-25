@@ -87,8 +87,26 @@ enum APIError: Error {
 
 ## State of this Lib
 
-This is a very early alpha - as you can see, there are only a handful of operators implemented, only a few comments, and almost no tests.
+This is an early beta. Crucial tests exist now, e.g. for lifetime, and the central `flatMap` operator. All public components and methods are documented.
 
 ## Collaborate
 
 I'm happy to accept pull requests, and my DMs are open [@manuelmaly](https://twitter.com/manuelmaly).
+
+## Changelog
+
+### 0.2.0 (2020/10/25):
+
+- Fixed lifetime problems for when a Property is not retained, but its `Publisher`s are still being observed.
+- Added crucial tests for Property lifetime and `flatMap`
+- Added documentation to all public-facing components and methods
+- Added operators: 
+    - `map` with 1, 2, or 3 keypaths
+    - `map` with a fixed value
+    - `filter`
+    - `compactMap`
+    - `zip` with one Property
+
+### 0.1.0 (2020/10/17):
+
+- Initial implementation. Early alpha. 
