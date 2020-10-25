@@ -134,4 +134,11 @@ final class FlatMapTests: XCTestCase {
         }
     }
 
+    func testFlatMap_WithZeroMaxPublishers() {
+
+        let property = Property(initial: 0, then: Empty())
+        let flatMapped = property.flatMap(maxPublishers: .none, { Property(initial: $0, then: Empty()) })
+        XCTAssertEqual(flatMapped.value, 0)
+    }
+
 }
