@@ -62,10 +62,14 @@ public struct Property<Output> {
         getCurrentValue = { currentValue.value! }
         subsequentValues = {
             let subject = PassthroughSubject<Output, Never>()
-            let cancellable = unsafePublisher.sink(receiveValue: { [weak currentValue] value in
-                currentValue?.send(value)
-                subject.send(value)
-            })
+            let cancellable = unsafePublisher.sink(
+                receiveCompletion: subject.send(completion:),
+                receiveValue: { [weak currentValue] value in
+                    currentValue?.send(value)
+                    subject.send(value)
+                }
+            )
+
             return subject
                 .extendLifetime(of: cancellable)
                 .eraseToAnyPublisher()
