@@ -269,7 +269,7 @@ internal extension Publisher {
 
     /// Extends the lifetime of an object until `self`'s observation is cancelled.
     /// - Parameters:
-    ///   - value: The object whose lifetime is extended (retained in ARC).
+    ///   - object: The object whose lifetime is extended (retained in ARC).
     func extendLifetime<Retained: AnyObject>(of object: Retained) -> Publishers.Map<Self, Output> {
         map {
             withExtendedLifetime(object, {})

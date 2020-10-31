@@ -82,9 +82,7 @@ final class LifetimeTests: XCTestCase {
         cancellable?.cancel()
         cancellable = nil
 
-        withExtendedLifetime(cancellable, {
-            XCTAssertNil(weakSubject)
-        })
+        XCTAssertNil(weakSubject)
     }
 
     func testCurrentValueSubject_IsRetained_BySubsequentValuesSubscription() {
