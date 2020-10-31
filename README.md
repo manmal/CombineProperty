@@ -2,9 +2,9 @@
 
 When using Combine, a challenge sometimes is: How can a Publisher's current value be retrieved?
 
-`Combine.CurrentValueSubject` would be an option since it stores a current value, but this is a dead end - you cannot `map()` a subject and retrieve the mapped current value. It's also sometimes not ideal to leave the current value mutable.
+`Combine.CurrentValueSubject` would be an option since it stores a current value, but this is a dead end - you cannot `map()` a `CurrentValueSubject` and retrieve the _mapped_ current value. It would also sometimes be desirable to make a subject immutable.
 
-Properties (inspired by [ReactiveSwift](https://github.com/ReactiveCocoa/ReactiveSwift/blob/master/Sources/Property.swift)) take either a `CurrentValueSubject` or an arbitrary `Publisher` plus initial value, and provide:
+Properties (inspired by [ReactiveSwift](https://github.com/ReactiveCocoa/ReactiveSwift/blob/master/Sources/Property.swift)) fill these gaps. They take either a `CurrentValueSubject` or an initial value and a `Publisher`, and provide:
 - The current value
 - A `Publisher` that returns all future values, including the current one
 - A `Publisher` that returns all future values, excluding the current one
@@ -13,8 +13,8 @@ Properties (inspired by [ReactiveSwift](https://github.com/ReactiveCocoa/Reactiv
 ## Why?
 
 There are at least two scenarios where Properties shine:
-- Slicing global state (e.g. `AppState`) into sub-states (e.g. `AuthState`) for easier testing. Maybe a ViewModel only needs the `AuthState` to operate - if it gets passed the `AppState`, then the whole state has to be mocked for every test.
-- "Storing" dynamic data in a `struct` (like the ViewModel in the example below).
+1. Slicing state (e.g. `AppState`) into sub-states (e.g. `AuthState`) for easier testing. Maybe a ViewModel only needs the `AuthState` to operate - if it gets passed the `AppState`, then the whole state has to be mocked for every test. To solve this, a `Property<AppState>` can hold the current (and observable) root app state, and `Property<AuthState>` can be derived by calling `map` on the former. This same principle can be be applied per feature, or for reusable components, too — a UICollectionView cell could be passed a property, and subscribe to that property's changes.
+2. Storing dynamic state in a value type (`struct` / `enum`). `Property` is thread-safe and well-tested (its core functionality relies on `CurrentValueSubject`), so it's an excellent fit for internal storage. That way, even ViewModels can become value types (see example below), because mutability is pushed down to the properties.
 
 ## Usage
 
