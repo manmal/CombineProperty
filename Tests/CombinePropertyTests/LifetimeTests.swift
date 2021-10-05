@@ -57,7 +57,7 @@ final class LifetimeTests: XCTestCase {
 
         _ = {
             let subject = CurrentValueSubject<Int, Never>(0)
-            let property = Property(subject)
+            let property: Property<Int> = .init(subject)
             cancellable = property.allValues.map { String($0) }.sink { _ in }
             weakSubject = subject
         }()
@@ -74,7 +74,7 @@ final class LifetimeTests: XCTestCase {
 
         _ = {
             let subject = CurrentValueSubject<Int, Never>(0)
-            let property = Property(subject)
+            let property: Property<Int> = .init(subject)
             cancellable = property.allValues.map { String($0) }.sink { _ in }
             weakSubject = subject
         }()
@@ -92,7 +92,7 @@ final class LifetimeTests: XCTestCase {
 
         _ = {
             let subject = CurrentValueSubject<Int, Never>(0)
-            let property = Property(subject)
+            let property: Property<Int> = .init(subject)
             cancellable = property.subsequentValues.map { String($0) }.sink { _ in }
             weakSubject = subject
         }()
@@ -109,7 +109,7 @@ final class LifetimeTests: XCTestCase {
 
         _ = {
             let subject = CurrentValueSubject<Int, Never>(0)
-            let property = Property(subject)
+            let property: Property<Int> = .init(subject)
             cancellable = property.subsequentValues.map { String($0) }.sink { _ in }
             weakSubject = subject
         }()

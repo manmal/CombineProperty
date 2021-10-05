@@ -100,8 +100,10 @@ public struct Property<Output> {
             fatalError("The publisher promised to send at least one value. Received none.")
         }
 
-        allValues = Just(())
-            .map { [getCurrentValue] in getCurrentValue() }
+        allValues = Deferred { Just(()) }
+            .map { [getCurrentValue] in
+                getCurrentValue()
+            }
             .append(subsequentValues)
             .eraseToAnyPublisher()
     }
